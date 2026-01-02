@@ -6,7 +6,6 @@ import { NotificationService } from "src/notifications/notification.service";
 
 import { MealPlan } from "./entities/meal_plan.entity";
 import { PlanItem } from "./entities/plan_item.entity";
-import { Recipe } from "./entities/recipe.entity";
 import { PlanItemDto } from "./dto/plan_item.dto";
 import { Food } from "src/food/food.entity";
 
@@ -18,9 +17,6 @@ export class MealPlanService {
 
         @InjectRepository(PlanItem)
         private readonly planItemRepo: Repository<PlanItem>,
-
-        @InjectRepository(Recipe)
-        private readonly recipeRepo: Repository<Recipe>,
 
         @InjectRepository(Food)
         private readonly foodRepo: Repository<Food>,
@@ -56,8 +52,18 @@ export class MealPlanService {
             mealPlan,
         })
 
-        this.notificationService.SendNotification(`Added item ${food.name} to plan: ${mealPlan.id}`);
+        //this.notificationService.SendNotification(`Added item ${food.name} to plan on date: ${mealPlan.monday}`);
 
         return await this.planItemRepo.save(planItem);
+    }
+
+    async DeletePlanItem(id: number): Promise<void> {
+        const planItem = this.planItemRepo.findOneBy({ id });
+        if (!planItem) throw new NotFoundException('Plan item not found');
+
+        // Delete the plan item
+        const result = await this.planItemRepo.delete(id);
+        if (result.affected === 0)
+            throw new NotFoundException(`Plan Item with ID ${id} not found`);
     }
 }

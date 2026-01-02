@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Query } from "@nestjs/common";
 import { MealPlanService } from "./meal_plan.service";
 import { FoodService } from "src/food/food.service";
 import { PlanItemDto } from "./dto/plan_item.dto";
@@ -11,12 +11,17 @@ export class MealPlanController {
     ) { }
 
     @Get()
-    async GetMealPlan(@Query('monday') monday: string) {
+    GetMealPlan(@Query('monday') monday: string) {
         return this.mealPlanService.GetMealPlan(monday);
     }
 
     @Post()
-    async AddPlanItem(@Body() dto: PlanItemDto) {
+    AddPlanItem(@Body() dto: PlanItemDto) {
         return this.mealPlanService.SavePlanItem(dto);
+    }
+
+    @Delete(':id')
+    DeleteFood(@Param('id') id: string) {
+        return this.mealPlanService.DeletePlanItem(Number(id));
     }
 }

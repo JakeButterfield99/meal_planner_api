@@ -1,38 +1,32 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import * as twilio from 'twilio';
+import notificationapi from 'notificationapi-node-server-sdk'
 
 @Injectable()
 export class NotificationService {
-    private client: twilio.Twilio;
-    private from_number: string;
-
     constructor(
         private configService: ConfigService
     ) {
-        const TWILIO_ACCOUNT_SID = this.configService.get<string>('TWILIO_ACCOUNT_SID');
-        const TWILIO_AUTH_TOKEN = this.configService.get<string>('TWILIO_AUTH_TOKEN');
-        const TWILIO_FROM_NUMBER = this.configService.get<string>('TWILIO_FROM_NUMBER');
+        const NOTIFY_API_ID = this.configService.get<string>('NOTIFICATION_API_ID');
+        const NOTIFY_API_SEC = this.configService.get<string>('NOTIFICATION_API_SECRET');
 
-        const twilio_module = require("twilio");
-        this.client = twilio_module(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-        this.from_number = TWILIO_FROM_NUMBER || "";
+        notificationapi.init(
+            NOTIFY_API_ID!, // Client ID
+            NOTIFY_API_SEC! // Client Secret
+        )
     }
 
     SendNotification(content: string) {
-        console.log("SENDING MESSAGE", content);
-
-        this.client.messages.create({
-            to: "+16049167265",
-            from: this.from_number,
-            body: content,
-        })
-            .then(message => {
-                console.log("MESSAGE SENT", message.sid);
-            })
-            .catch(err => {
-                console.log("MESSAGE ERR", err);
-            });
+        notificationapi.send({
+            type: 'mealplanner',
+            to: {
+                id: 'jakebutterfield99@outlook.com',
+                number: '+16049167265'
+            },
+            sms: {
+                message: content
+            }
+        }).then(res => console.log(res.data))
     }
 }

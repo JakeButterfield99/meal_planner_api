@@ -2,12 +2,14 @@ import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+
 import { MealPlanModule } from './meal_plan/meal_plan.module';
 import { ShoppingListModule } from './shopping_list/shopping_list.module';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { FoodModule } from './food/food.module';
 import { ImageModule } from './image/image.module';
 import { ConfigModule } from '@nestjs/config';
+import { RecipeModule } from './recipes/recipe.module';
 
 const DATABASE_CONFIG: TypeOrmModuleOptions = {
   type: "postgres",
@@ -34,7 +36,8 @@ const IMAGE_CONFIG = {
     FoodModule,
     MealPlanModule,
     ShoppingListModule,
-    ImageModule
+    ImageModule,
+    RecipeModule
   ],
 })
 export class AppModule { }

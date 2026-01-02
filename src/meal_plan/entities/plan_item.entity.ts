@@ -28,7 +28,10 @@ export class PlanItem {
     type: MealType;
 
     // Relations
-    @ManyToOne(() => Food, meal => meal.planItems, { eager: true })
+    @ManyToOne(() => Food, meal => meal.planItems, {
+        eager: true,
+        onDelete: "CASCADE",
+    })
     food: Food;
 
     @ManyToOne(() => MealPlan, mealPlan => mealPlan.items, { onDelete: 'CASCADE' })
