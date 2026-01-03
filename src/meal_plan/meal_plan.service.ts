@@ -24,6 +24,12 @@ export class MealPlanService {
         private notificationService: NotificationService,
     ) { }
 
+    async GetPlanById(id: number): Promise<MealPlan> {
+        const plan = await this.mealPlanRepo.findOneBy({ id });
+        if (!plan) throw new NotFoundException('Meal plan not found');
+        return plan;
+    }
+
     async GetMealPlan(monday: string): Promise<MealPlan> {
         const plan = await this.mealPlanRepo.findOneBy({ monday });
 
