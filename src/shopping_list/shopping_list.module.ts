@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { ShoppingList } from './shopping_list.entity';
+import { IgnoredItems, ShoppingList } from './shopping_list.entity';
 import { ShoppingListController } from './shopping_list.controller';
 import { ShoppingListService } from './shopping_list.service';
 import { MealPlanService } from 'src/meal_plan/meal_plan.service';
@@ -13,7 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import { RecipeService } from 'src/recipes/recipe.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([ShoppingList, MealPlan, PlanItem, Food])],
+    imports: [TypeOrmModule.forFeature([ShoppingList, MealPlan, PlanItem, Food, IgnoredItems])],
     controllers: [ShoppingListController],
     providers: [ShoppingListService, MealPlanService, NotificationService, ConfigService, RecipeService]
 })

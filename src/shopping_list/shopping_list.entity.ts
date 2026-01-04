@@ -11,3 +11,12 @@ export class ShoppingList {
     @Column({ default: false })
     checked: boolean;
 }
+
+@Entity()
+export class IgnoredItems {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column()
+    item: string;
+}
