@@ -8,6 +8,8 @@ import { MealPlan } from "./entities/meal_plan.entity";
 import { PlanItem } from "./entities/plan_item.entity";
 import { PlanItemDto } from "./dto/plan_item.dto";
 import { Food } from "src/food/food.entity";
+import { AlertIngredient } from "./entities/alert_ingredient.entity";
+import { AlertIngredientDto } from "./dto/alert_ingredient.dto";
 
 @Injectable()
 export class MealPlanService {
@@ -20,6 +22,9 @@ export class MealPlanService {
 
         @InjectRepository(Food)
         private readonly foodRepo: Repository<Food>,
+
+        @InjectRepository(AlertIngredient)
+        private readonly alertIngredientRepo: Repository<AlertIngredient>,
 
         private notificationService: NotificationService,
     ) { }
@@ -71,5 +76,29 @@ export class MealPlanService {
         const result = await this.planItemRepo.delete(id);
         if (result.affected === 0)
             throw new NotFoundException(`Plan Item with ID ${id} not found`);
+    }
+
+    async GetAlertIngredients(): Promise<AlertIngredient[]> {
+        return this.alertIngredientRepo.find();
+    }
+
+    async AddAlertIngredient(dto: AlertIngredientDto): Promise<AlertIngredient[]> {
+        const alert_ing = this.alertIngredientRepo.create({
+            item: dto.item
+        });
+        await this.alertIngredientRepo.save(alert_ing);
+        return this.GetAlertIngredients();
+    }
+
+    async RemoveAlertIngredient(id: number): Promise<AlertIngredient[]> {
+        const alertIng = this.alertIngredientRepo.findOneBy({ id });
+        if (!alertIng) throw new NotFoundException('Plan item not found');
+
+        // Delete the plan item
+        const result = await this.alertIngredientRepo.delete(id);
+        if (result.affected === 0)
+            throw new NotFoundException(`Plan Item with ID ${id} not found`);
+
+        return this.GetAlertIngredients();
     }
 }

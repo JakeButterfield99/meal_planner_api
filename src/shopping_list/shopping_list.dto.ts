@@ -1,5 +1,13 @@
 export class GenerateListDto {
-    planId?: number
+    planId?: number;
+}
+
+export class RemoveIgnoredItemDto {
+    itemId?: number;
+}
+
+export class AddIngredientToListDto {
+    item: string;
 }
 
 export class UpdateListDto {

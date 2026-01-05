@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
 import { ShoppingListService } from "./shopping_list.service";
-import { GenerateListDto, UpdateListDto } from "./shopping_list.dto";
+import { AddIngredientToListDto, RemoveIgnoredItemDto, UpdateListDto } from "./shopping_list.dto";
 
 @Controller("shopping_list")
 export class ShoppingListController {
@@ -13,19 +13,24 @@ export class ShoppingListController {
         return this.shoppingListService.GetShoppingList();
     }
 
-    @Get('/ignored')
-    GetIgnoredItems() {
-        return this.shoppingListService.GetIgnoredItems();
-    }
-
     @Patch()
     UpdateShoppingList(@Body() dto: UpdateListDto) {
         return this.shoppingListService.UpdateShoppingList(dto);
     }
 
+    @Delete()
+    ClearList() {
+        return this.shoppingListService.ClearList();
+    }
+
+    @Post('/add')
+    AddIngredientToList(@Body() dto: AddIngredientToListDto) {
+        return this.shoppingListService.AddIngredientToList(dto);
+    }
+
     @Post('/generate')
-    GenerateList(@Body() dto: GenerateListDto) {
-        return this.shoppingListService.GenerateList(dto);
+    GenerateList() {
+        return this.shoppingListService.GenerateList();
     }
 
     @Post('/anylist')
@@ -33,8 +38,13 @@ export class ShoppingListController {
         return this.shoppingListService.AddToAnyList();
     }
 
-    @Delete()
-    ClearList() {
-        return this.shoppingListService.ClearList();
+    @Get('/ignored')
+    GetIgnoredItems() {
+        return this.shoppingListService.GetIgnoredItems();
+    }
+
+    @Delete('/ignored/:id')
+    RemoveIgnoredItem(@Param('id') id: string) {
+        return this.shoppingListService.RemoveIgnoredItem(Number(id));
     }
 }

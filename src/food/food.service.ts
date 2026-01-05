@@ -34,8 +34,6 @@ export class FoodService {
     }
 
     async update(id: number, dto: FoodDto): Promise<Food> {
-        console.log("Updating food ID:", id, "with data:", dto);
-
         const food = await this.findOne(id);
         Object.assign(food, dto);
         return this.foodRepo.save(food);

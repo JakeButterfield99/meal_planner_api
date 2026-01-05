@@ -1,55 +1,17 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-
-import { IgnoredItems, ShoppingList } from "./shopping_list.entity";
-import { GenerateListDto, UpdateListDto } from "./shopping_list.dto";
-import { MealPlanService } from "src/meal_plan/meal_plan.service";
-import { RecipeService } from "src/recipes/recipe.service";
-import { Recipe, RecipeContents } from "src/recipes/recipe.type";
 import { ConfigService } from "@nestjs/config";
 
+import { IgnoredItems, ShoppingList } from "./shopping_list.entity";
+
+import { AddIngredientToListDto, UpdateListDto } from "./shopping_list.dto";
+import { MealPlanService } from "src/meal_plan/meal_plan.service";
+import { RecipeService } from "src/recipes/recipe.service";
+
+import { GetNextDateKeys, ParseIngredientName } from "src/utils";
+
 const AnyList = require('anylist');
-
-function ParseIngredientName(input: string): string {
-	let text = input.toLowerCase().trim();
-
-	// Remove parenthetical notes
-	text = text.replace(/\([^)]*\)/g, "");
-
-	// Unicode fraction characters
-	const fractions = "½⅓⅔¼¾⅛⅜⅝⅞";
-
-	// Remove leading quantities (numbers, unicode fractions, mixed, ranges)
-	const quantityRegex = new RegExp(
-		`^(\\d+\\s*[${fractions}]|\\d+[${fractions}]|[${fractions}]|` +
-		`\\d+(?:[\\/\\.]\d+)?|` +
-		`\\d+\\s*(?:-|–|to)\\s*\\d+\\s*)\\s*`,
-		"i"
-	);
-
-	text = text.replace(quantityRegex, "");
-
-	// Remove common units
-	text = text.replace(
-		/^(cups?|cup|tablespoons?|tbsp|teaspoons?|tsp|pounds?|lbs?|ounces?|oz|grams?|g|kilograms?|kg|cloves?|milliliters?|ml|liters?|l|pinch|dash)\s+/i,
-		""
-	);
-
-	// Remove "of" if it follows a unit
-	text = text.replace(/^of\s+/i, "");
-
-	// Remove preparation notes after commas
-	text = text.split(",")[0];
-
-	// Remove trailing preparation phrases
-	text = text.replace(
-		/\b(diced|minced|sliced|cut|cubed|grated|to taste)\b.*$/i,
-		""
-	);
-
-	return text.trim();
-}
 
 @Injectable()
 export class ShoppingListService {
@@ -82,6 +44,31 @@ export class ShoppingListService {
 		return this.ignoredItemsRepo.find();
 	}
 
+	async RemoveIgnoredItem(id: number) {
+		const result = await this.ignoredItemsRepo.delete(id);
+		if (result.affected === 0)
+			throw new NotFoundException(`Plan Item with ID ${id} not found`);
+	}
+
+	async AddIngredientToList(dto: AddIngredientToListDto): Promise<ShoppingList[]> {
+		let shopping_list: ShoppingList[] = await this.GetShoppingList();
+
+		const name = ParseIngredientName(dto.item);
+		if (name === "") throw new NotFoundException("Ingredient name not found");
+
+		const existing = shopping_list.find(i => i.item.toLowerCase() === name.toLowerCase());
+		if (existing) return shopping_list;
+
+		let shoppingListItem = this.shoppingListRepo.create({
+			item: name,
+			checked: false,
+		});
+		shoppingListItem = await this.shoppingListRepo.save(shoppingListItem);
+		shopping_list.push(shoppingListItem);
+
+		return shopping_list;
+	}
+
 	async UpdateShoppingList(dto: UpdateListDto): Promise<ShoppingList[]> {
 		const item = await this.shoppingListRepo.findOneBy({ id: dto.id });
 		if (!item) throw new NotFoundException(`Shopping list item with ID ${dto.id} not found`);
@@ -102,48 +89,51 @@ export class ShoppingListService {
 		return this.GetShoppingList();
 	}
 
-	async GenerateList(dto: GenerateListDto): Promise<ShoppingList[]> {
-		if (!dto.planId) return [];
-
-		this.shoppingListRepo.clear();
-
+	async GenerateList(): Promise<ShoppingList[]> {
 		const ignoredItems = await this.GetIgnoredItems();
 		let shopping_list: ShoppingList[] = [];
-		let recipes: RecipeContents[] = [];
 
-		const plan = await this.mealPlanService.GetPlanById(dto.planId);
-		for (const item of plan.items) {
-			if (!item.food) continue;
-			if (!item.food.recipes) continue;
+		// Clear the repo
+		this.shoppingListRepo.clear();
 
-			for (const recipe of item.food.recipes) {
-				const recipe_data = await this.recipeService.getRecipe(recipe.id);
-				recipes.push(recipe_data);
-			}
-		}
+		// Get the next 4 mondays to pull from
+		const dateKeys = GetNextDateKeys(4);
 
-		for (const recipe of recipes) {
-			for (const ingredient of recipe.ingredients) {
-				if (ingredient.type !== 'to_do') continue;
+		// Loop through the plans
+		for (const key of dateKeys) {
+			const meal_plan = await this.mealPlanService.GetMealPlan(key);
 
-				const name = ParseIngredientName(ingredient.text);
-				if (name === "") continue;
+			// Loop through each food item in the meal plan
+			for (const item of meal_plan.items) {
+				if (!item.food) continue;
+				if (!item.food.recipes) continue;
 
-				const existing = shopping_list.find(i => i.item.toLowerCase() === name.toLowerCase());
-				if (existing) continue;
+				// Loop through each recipe attached to food item
+				for (const recipe of item.food.recipes) {
+					const recipe_data = await this.recipeService.getRecipe(recipe.id);
 
-				const ignore = ignoredItems.find(i => i.item.toLowerCase() === name.toLowerCase());
-				if (ignore) {
-					console.log("FOUND IGNORED INGREDIENT", name.toLowerCase());
-					continue;
-				};
+					// Loop through the ingredients of the recipe
+					for (const ingredient of recipe_data.ingredients) {
+						if (ingredient.type !== 'to_do') continue;
 
-				let shoppingListItem = this.shoppingListRepo.create({
-					item: name,
-					checked: false,
-				});
-				shoppingListItem = await this.shoppingListRepo.save(shoppingListItem);
-				shopping_list.push(shoppingListItem);
+						const name = ParseIngredientName(ingredient.text);
+						if (name === "") continue;
+
+						const existing = shopping_list.find(i => i.item.toLowerCase() === name.toLowerCase());
+						if (existing) continue;
+
+						const ignore = ignoredItems.find(i => i.item.toLowerCase() === name.toLowerCase());
+						if (ignore) continue;
+
+						// Add to shopping list
+						let shoppingListItem = this.shoppingListRepo.create({
+							item: name,
+							checked: false,
+						});
+						shoppingListItem = await this.shoppingListRepo.save(shoppingListItem);
+						shopping_list.push(shoppingListItem);
+					}
+				}
 			}
 		}
 
