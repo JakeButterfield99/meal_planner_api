@@ -102,6 +102,7 @@ export class ShoppingListService {
 		// Loop through the plans
 		for (const key of dateKeys) {
 			const meal_plan = await this.mealPlanService.GetMealPlan(key);
+			if (!meal_plan) continue;
 
 			// Loop through each food item in the meal plan
 			for (const item of meal_plan.items) {
