@@ -125,8 +125,11 @@ export class MealPlanService {
         const ingredients: string[] = [];
 
         for (const item of planItems) {
+            if (!item.food.recipes) continue;
             for (const recipe of item.food.recipes) {
                 const recipeContents = await this.recipeService.getRecipe(recipe.id);
+                if (!recipeContents || !recipeContents.ingredients)
+                    continue;
 
                 for (const ingredient of recipeContents.ingredients) {
                     const should_alert = alertIngredients.find(val => val.item === ingredient.text);
