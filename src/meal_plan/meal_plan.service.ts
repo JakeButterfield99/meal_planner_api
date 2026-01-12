@@ -134,8 +134,7 @@ export class MealPlanService {
                 for (const ingredient of recipeContents.ingredients) {
                     const should_alert = alertIngredients.find(val => val.item === ingredient.text);
                     if (should_alert) {
-                        const ing_text = ParseIngredientName(ingredient.text);
-                        ingredients.push(ing_text);
+                        ingredients.push(ingredient.text);
                     }
                 }
             }
