@@ -39,4 +39,9 @@ export class MealPlanController {
     RemoveAlertIngredient(@Param('id') id: string) {
         return this.mealPlanService.RemoveAlertIngredient(Number(id));
     }
+
+    @Get("/notify")
+    NotifyMealPlan() {
+        return this.mealPlanService.NotifyMealPlan();
+    }
 }

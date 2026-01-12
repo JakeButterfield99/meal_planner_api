@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { NotificationService } from "src/notifications/notification.service";
 
@@ -10,9 +11,13 @@ import { PlanItemDto } from "./dto/plan_item.dto";
 import { Food } from "src/food/food.entity";
 import { AlertIngredient } from "./entities/alert_ingredient.entity";
 import { AlertIngredientDto } from "./dto/alert_ingredient.dto";
+import { GetDateKey, ParseIngredientName } from "src/utils";
+import { RecipeService } from "src/recipes/recipe.service";
 
 @Injectable()
 export class MealPlanService {
+    private readonly logger = new Logger(MealPlanService.name);
+
     constructor(
         @InjectRepository(MealPlan)
         private readonly mealPlanRepo: Repository<MealPlan>,
@@ -27,6 +32,7 @@ export class MealPlanService {
         private readonly alertIngredientRepo: Repository<AlertIngredient>,
 
         private notificationService: NotificationService,
+        private recipeService: RecipeService,
     ) { }
 
     async GetPlanById(id: number): Promise<MealPlan> {
@@ -61,9 +67,7 @@ export class MealPlanService {
             type: dto.type,
             food,
             mealPlan,
-        })
-
-        //this.notificationService.SendNotification(`Added item ${food.name} to plan on date: ${mealPlan.monday}`);
+        });
 
         return await this.planItemRepo.save(planItem);
     }
@@ -100,5 +104,40 @@ export class MealPlanService {
             throw new NotFoundException(`Plan Item with ID ${id} not found`);
 
         return this.GetAlertIngredients();
+    }
+
+    @Cron(CronExpression.EVERY_DAY_AT_8PM, { timeZone: 'America/Toronto' })
+    async NotifyMealPlan() {
+        this.logger.debug('Running scheduled task at 10 PM');
+
+        // Get tomorrows date key
+        const date = new Date();
+        date.setDate(date.getDate() + 1);
+        const date_str = GetDateKey(date);
+
+        // Check if there is a plan entry for tomorrow
+        const planItems = await this.planItemRepo.findBy({ date: date_str });
+        if (!planItems || planItems.length === 0)
+            return;
+
+        // Find any alert ingredients in the plan items
+        const alertIngredients = await this.GetAlertIngredients();
+        const ingredients: string[] = [];
+
+        for (const item of planItems) {
+            for (const recipe of item.food.recipes) {
+                const recipeContents = await this.recipeService.getRecipe(recipe.id);
+
+                for (const ingredient of recipeContents.ingredients) {
+                    const should_alert = alertIngredients.find(val => val.item === ingredient.text);
+                    if (should_alert) {
+                        const ing_text = ParseIngredientName(ingredient.text);
+                        ingredients.push(ing_text);
+                    }
+                }
+            }
+        }
+
+        this.notificationService.NotifyMealPlan(date, planItems, ingredients);
     }
 }

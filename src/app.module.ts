@@ -3,6 +3,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { MealPlanModule } from './meal_plan/meal_plan.module';
 import { ShoppingListModule } from './shopping_list/shopping_list.module';
@@ -32,6 +33,7 @@ const IMAGE_CONFIG = {
     TypeOrmModule.forRoot(DATABASE_CONFIG),
     ServeStaticModule.forRoot(IMAGE_CONFIG),
     ConfigModule.forRoot(),
+    ScheduleModule.forRoot(),
 
     FoodModule,
     MealPlanModule,

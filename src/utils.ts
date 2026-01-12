@@ -1,3 +1,5 @@
+import { MealType } from "./meal_plan/entities/plan_item.entity";
+
 // Parse ingredient name to just retrieve food without measurements, preparation etc.
 export function ParseIngredientName(input: string): string {
     let text = input.toLowerCase().trim();
@@ -76,4 +78,15 @@ export function GetNextDateKeys(count: number): string[] {
     }
 
     return dateKeys;
+}
+
+const TYPE_TEXT = {
+    [MealType.BREAKFAST]: "Breakfast",
+    [MealType.LUNCH]: "Lunch",
+    [MealType.DINNER]: "Dinner",
+    [MealType.SNACK]: "Snack",
+}
+
+export function GetTypeText(type: MealType) {
+    return TYPE_TEXT[type];
 }

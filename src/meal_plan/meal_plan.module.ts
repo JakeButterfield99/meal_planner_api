@@ -11,10 +11,11 @@ import { FoodService } from 'src/food/food.service';
 import { NotificationService } from 'src/notifications/notification.service';
 import { ConfigService } from '@nestjs/config';
 import { AlertIngredient } from './entities/alert_ingredient.entity';
+import { RecipeService } from 'src/recipes/recipe.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([MealPlan, PlanItem, Food, AlertIngredient])],
     controllers: [MealPlanController],
-    providers: [MealPlanService, FoodService, NotificationService, ConfigService],
+    providers: [MealPlanService, FoodService, NotificationService, ConfigService, RecipeService],
 })
 export class MealPlanModule { }
