@@ -11,6 +11,7 @@ import { FoodModule } from './food/food.module';
 import { ImageModule } from './image/image.module';
 import { ConfigModule } from '@nestjs/config';
 import { RecipeModule } from './recipes/recipe.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 const DATABASE_CONFIG: TypeOrmModuleOptions = {
   type: "postgres",
@@ -39,7 +40,8 @@ const IMAGE_CONFIG = {
     MealPlanModule,
     ShoppingListModule,
     ImageModule,
-    RecipeModule
+    RecipeModule,
+    SchedulerModule,
   ],
 })
 export class AppModule { }

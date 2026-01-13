@@ -106,9 +106,8 @@ export class MealPlanService {
         return this.GetAlertIngredients();
     }
 
-    @Cron(CronExpression.EVERY_DAY_AT_8PM, { timeZone: 'America/Toronto' })
     async NotifyMealPlan() {
-        this.logger.debug('Running scheduled task at 10 PM');
+        this.logger.debug('Running scheduled task at 8PM');
 
         // Get tomorrows date key
         const date = new Date();
