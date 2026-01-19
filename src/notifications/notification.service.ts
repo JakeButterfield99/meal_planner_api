@@ -37,7 +37,7 @@ export class NotificationService {
         }
     }
 
-    NotifyMealPlan(date: Date, planItems: PlanItem[], ingredients: string[]) {
+    NotifyMealPlan(date: Date, planItems: PlanItem[], ingredients: string[], notes: string[]) {
         const day = String(date.getDate()).padStart(2, "0");
         const month = String(date.getMonth() + 1).padStart(2, "0");
 
@@ -55,7 +55,16 @@ export class NotificationService {
             }
         }
 
-        let text = `Meal Plan for tomorrow (${day}/${month}): ${planList} ${ingredientsList}`;
+        // Format any notes into a list
+        let notesList = ""
+        if (notes && notes.length > 0) {
+            notesList = notesList + "\n\nNotes:";
+            for (const note of notes) {
+                notesList = notesList + `\n - ${note}`;
+            }
+        }
+
+        let text = `Meal Plan for tomorrow (${day}/${month}): ${planList} ${notesList} ${ingredientsList}`;
 
         this.SendNotification(text);
     }

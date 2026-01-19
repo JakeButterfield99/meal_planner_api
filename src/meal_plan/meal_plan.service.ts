@@ -140,12 +140,27 @@ export class MealPlanService {
         if (!planItems || planItems.length === 0)
             return;
 
-        // Find any alert ingredients in the plan items
         const alertIngredients = await this.GetAlertIngredients();
+
+        const items: PlanItem[] = [];
         const ingredients: string[] = [];
+        const notes: string[] = [];
 
         for (const item of planItems) {
+            // Check for notes
+            if (!item.food) {
+                if (item.notes)
+                    notes.push(item.notes);
+                continue;
+            };
+
+            // Add Item to list
+            items.push(item);
+
+            // No recipes
             if (!item.food.recipes) continue;
+
+            // Loop through each recipes and pull ingredients
             for (const recipe of item.food.recipes) {
                 const recipeContents = await this.recipeService.getRecipe(recipe.id);
                 if (!recipeContents || !recipeContents.ingredients)
@@ -160,6 +175,6 @@ export class MealPlanService {
             }
         }
 
-        this.notificationService.NotifyMealPlan(date, planItems, ingredients);
+        this.notificationService.NotifyMealPlan(date, items, ingredients, notes);
     }
 }
