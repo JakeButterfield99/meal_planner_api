@@ -7,7 +7,7 @@ import { NotificationService } from "src/notifications/notification.service";
 
 import { MealPlan } from "./entities/meal_plan.entity";
 import { PlanItem } from "./entities/plan_item.entity";
-import { PlanItemDto } from "./dto/plan_item.dto";
+import { AddPlanNoteDto, PlanItemDto } from "./dto/plan_item.dto";
 import { Food } from "src/food/food.entity";
 import { AlertIngredient } from "./entities/alert_ingredient.entity";
 import { AlertIngredientDto } from "./dto/alert_ingredient.dto";
@@ -67,19 +67,40 @@ export class MealPlanService {
             type: dto.type,
             food,
             mealPlan,
+            notes: dto.notes
         });
 
         return await this.planItemRepo.save(planItem);
     }
 
+    async UpdatePlanItem(id: number, dto: PlanItemDto) {
+        const planItem = await this.planItemRepo.findOneBy({ id });
+        if (!planItem) throw new NotFoundException('Plan item not found');
+        Object.assign(planItem, dto);
+        return this.planItemRepo.save(planItem);
+    }
+
     async DeletePlanItem(id: number): Promise<void> {
-        const planItem = this.planItemRepo.findOneBy({ id });
+        const planItem = await this.planItemRepo.findOneBy({ id });
         if (!planItem) throw new NotFoundException('Plan item not found');
 
         // Delete the plan item
         const result = await this.planItemRepo.delete(id);
         if (result.affected === 0)
             throw new NotFoundException(`Plan Item with ID ${id} not found`);
+    }
+
+    async AddPlanNote(dto: AddPlanNoteDto): Promise<PlanItem> {
+        const mealPlan = await this.mealPlanRepo.findOneBy({ id: dto.planId });
+        if (!mealPlan) throw new NotFoundException('Meal plan not found');
+
+        const planItem = this.planItemRepo.create({
+            date: dto.date,
+            mealPlan,
+            notes: dto.notes
+        });
+
+        return await this.planItemRepo.save(planItem);
     }
 
     async GetAlertIngredients(): Promise<AlertIngredient[]> {

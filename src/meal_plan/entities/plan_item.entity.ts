@@ -18,12 +18,16 @@ export class PlanItem {
     @Column({ type: 'date' })
     date: string;  // Stored as YYYY-MM-DD
 
-    @Column()
+    @Column({ nullable: true })
     assigned: string;
+
+    @Column({ nullable: true })
+    notes: string;
 
     @Column({
         type: 'enum',
         enum: MealType,
+        nullable: true
     })
     type: MealType;
 
@@ -31,6 +35,7 @@ export class PlanItem {
     @ManyToOne(() => Food, meal => meal.planItems, {
         eager: true,
         onDelete: "CASCADE",
+        nullable: true,
     })
     food: Food;
 

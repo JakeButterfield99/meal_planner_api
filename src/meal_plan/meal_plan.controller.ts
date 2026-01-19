@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { MealPlanService } from "./meal_plan.service";
 
-import { PlanItemDto } from "./dto/plan_item.dto";
+import { AddPlanNoteDto, PlanItemDto } from "./dto/plan_item.dto";
 import { AlertIngredientDto } from "./dto/alert_ingredient.dto";
 
 @Controller("meal_plan")
@@ -20,9 +20,19 @@ export class MealPlanController {
         return this.mealPlanService.SavePlanItem(dto);
     }
 
+    @Patch(':id')
+    UpdatePlanItem(@Param('id') id: string, @Body() dto: PlanItemDto) {
+        return this.mealPlanService.UpdatePlanItem(Number(id), dto);
+    }
+
     @Delete(':id')
-    DeleteFood(@Param('id') id: string) {
+    DeletePlanItem(@Param('id') id: string) {
         return this.mealPlanService.DeletePlanItem(Number(id));
+    }
+
+    @Post("/add_note")
+    AddPlanNote(@Body() dto: AddPlanNoteDto) {
+        return this.mealPlanService.AddPlanNote(dto);
     }
 
     @Get("/alert_ingredients")
