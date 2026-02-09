@@ -53,6 +53,7 @@ export class RecipeService {
             const parsedBatch = batch.results.reduce(function (result: Recipe[], val: PageObjectResponse) {
                 if (val.object !== 'page') return result;
                 if (val.properties['Name'].type !== 'title') return result;
+                if (val.properties['Name'].title.length === 0) return result;
 
                 return [...result, {
                     id: val.id,
