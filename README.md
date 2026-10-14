@@ -1,10 +1,12 @@
-# Jake's Meal Planner API
+# Jake's Meal Planner
 
 This is a NestJS-based backend for planning meals, generating shopping lists, and sending daily reminders based on a weekly meal schedule.
 
 It is the backend portion of my Meal Planner application, a home-brewed meal planning solution for my household.
 
 This project is currently self-hosted on my home network.
+
+React Project [HERE](https://github.com/JakeButterfield99/meal_planner)
 
 ## Features
 
